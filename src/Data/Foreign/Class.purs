@@ -12,7 +12,7 @@ import Prelude
 
 import Data.Array (range, zipWith, length)
 import Data.Either (Either(..), either)
-import Data.Foreign (F, Foreign, ForeignError(..), parseJSON, readArray, readInt, readNumber, readBoolean, readChar, readString)
+import Data.Foreign (F, Foreign, ForeignErrors, ForeignError(..), parseJSON, readArray, readInt, readNumber, readBoolean, readChar, readString)
 import Data.Foreign.Index (class Index, errorAt, (!))
 import Data.Foreign.Null (Null, readNull)
 import Data.Foreign.NullOrUndefined (NullOrUndefined, readNullOrUndefined)
@@ -53,7 +53,7 @@ instance arrayIsForeign :: (IsForeign a) => IsForeign (Array a) where
     readElements arr = sequence (zipWith readElement (range zero (length arr)) arr)
 
     readElement :: Int -> Foreign -> F a
-    readElement i value = readWith (ErrorAtIndex i) value
+    readElement i value = readWith (map (ErrorAtIndex i)) value
 
 instance nullIsForeign :: (IsForeign a) => IsForeign (Null a) where
   read = readNull read
@@ -69,9 +69,9 @@ readJSON :: forall a. (IsForeign a) => String -> F a
 readJSON json = parseJSON json >>= read
 
 -- | Attempt to read a foreign value, handling errors using the specified function
-readWith :: forall a e. (IsForeign a) => (ForeignError -> e) -> Foreign -> Either e a
+readWith :: forall a e. (IsForeign a) => (ForeignErrors -> e) -> Foreign -> Either e a
 readWith f value = either (Left <<< f) Right (read value)
 
 -- | Attempt to read a property of a foreign value at the specified index
 readProp :: forall a i. (IsForeign a, Index i) => i -> Foreign -> F a
-readProp prop value = value ! prop >>= readWith (errorAt prop)
+readProp prop value = value ! prop >>= readWith (map (errorAt prop))
