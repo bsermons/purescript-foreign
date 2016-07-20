@@ -32,7 +32,7 @@ infixl 9 ix as !
 foreign import unsafeReadPropImpl :: forall r k. Fn4 r (Foreign -> r) k Foreign (F Foreign)
 
 unsafeReadProp :: forall k. k -> Foreign -> F Foreign
-unsafeReadProp k value = runFn4 unsafeReadPropImpl (Left (singleton (TypeMismatch ["object"] (typeOf value)))) pure k value
+unsafeReadProp k value = runFn4 unsafeReadPropImpl (Left (singleton (TypeMismatch "object" (typeOf value)))) pure k value
 
 -- | Attempt to read a value from a foreign value property
 prop :: String -> Foreign -> F Foreign
